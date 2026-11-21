@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171715">
+  <meta name="description" content="Transforma lo que ve tu cámara en una pintura viva, con pinceladas y paletas inspiradas en obras de arte.">
+  <title>Lienzo Vivo — estudio de pintura en tiempo real</title>
+  <style>
+    :root{color-scheme:dark;--bg:#131412;--surface:#1c1e1b;--surface2:#242723;--ink:#f2efe8;--muted:#a1a69a;--line:#373d36;--accent:#d2a96c;--accent2:#e4bf82;--focus:#ddaf71}
+    *{box-sizing:border-box}
+    html{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+    body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 82% -20%,#30332655,transparent 46%),var(--bg)}
+    button,select,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
+    button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+    .sitehead{padding:20px clamp(18px,3vw,50px);display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid #383b344d}
+    .brand{display:flex;align-items:center;gap:13px}.brandmark{height:42px;width:42px;border:1px solid #ae905b88;display:grid;place-items:center;border-radius:12px;background:radial-gradient(circle at 25% 20%,#a1804a77,#27261c)}
+    .brandmark svg{width:24px;fill:none;stroke:#e8c894;stroke-width:1.65;stroke-linecap:round}
+    .brand strong{font:700 23px Georgia,"Times New Roman",serif;letter-spacing:-.7px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px}
+    .topnote{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px;letter-spacing:.1px}.green-dot,.status-dot{display:inline-block;height:7px;width:7px;flex:0 0 7px;border-radius:50%;background:#8fb896;box-shadow:0 0 12px #8fb89655}
+    .shell{max-width:1700px;margin:auto;padding:31px clamp(18px,3vw,50px) 32px;display:grid;grid-template-columns:minmax(255px,302px) minmax(0,1fr);gap:clamp(18px,2.6vw,40px)}
+    h1,h2,h3,p{margin-top:0}.hero-kicker{font-weight:650;color:var(--accent);letter-spacing:2.2px;font-size:11px;text-transform:uppercase;margin:7px 0 13px}
+    h1{font:normal clamp(34px,3.5vw,49px)/1.08 Georgia,"Times New Roman",serif;letter-spacing:-1.3px;margin-bottom:14px}
+    .intro{font-size:13px;line-height:1.75;color:#a9b0a5;max-width:310px;margin-bottom:29px}
+    .sectionhead{display:flex;align-items:center;justify-content:space-between;margin:25px 0 13px}.sectionhead h2{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;margin:0;color:#c2c5b9;font-weight:700}.sectionhead span{font-size:11px;color:#858b80}
+    .presets{display:grid;gap:9px}.preset{position:relative;border:1px solid #343a32;border-radius:12px;padding:11px 11px 11px 12px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink);background:#20221f;transition:border-color .16s,background .16s,transform .16s;width:100%}
+    .preset:hover{border-color:#897b59;background:#292b26;transform:translateY(-1px)}.preset.active{border-color:var(--accent);background:#302e25;box-shadow:0 0 0 1px #cba46b26 inset}
+    .preset-art{width:52px;height:56px;flex:0 0 52px;border-radius:8px;overflow:hidden;position:relative;background:var(--swatches);filter:saturate(1.18)}
+    .preset-art::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(116deg,#fff3 0 2px,transparent 2px 6px),repeating-linear-gradient(-35deg,#0505053d 0 2px,transparent 3px 12px);mix-blend-mode:soft-light;transform:rotate(-14deg) scale(1.5)}
+    .preset-details{display:grid;gap:5px;min-width:0}.preset-name{font-weight:650;font-size:13px}.preset-description{color:#9ea399;font-size:11px;line-height:1.35}.preset-check{margin-left:auto;align-self:start;color:var(--accent);font-size:16px;opacity:0}.preset.active .preset-check{opacity:1}
+    .tip{border-top:1px solid var(--line);margin-top:26px;padding-top:18px;display:flex;align-items:flex-start;gap:10px;color:#90988e;font-size:11px;line-height:1.65}.tip svg{width:16px;flex:0 0 16px;margin-top:1px;stroke:#cfab71}
+    .workspace{min-width:0}.stagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin-bottom:15px}
+    .stagehead h2{font:normal 24px Georgia,"Times New Roman",serif;letter-spacing:-.5px;margin:0 0 7px}.stagehead p{font-size:12px;color:#90998f;margin:0}
+    .livestate{font-size:11px;border:1px solid #454a3e;color:#aeb6a4;border-radius:100px;padding:8px 12px;display:flex;gap:7px;align-items:center;white-space:nowrap}.livestate .status-dot{background:#a5a79a;box-shadow:none}.livestate.live .status-dot{background:#8cc59c;box-shadow:0 0 13px #78bd88aa}
+    .stage{position:relative;overflow:hidden;border:1px solid #505043;border-radius:15px;background:#0f100f;box-shadow:0 27px 70px #07080690,0 1px 0 #77766033 inset}
+    .stage-top{height:43px;background:#252720e8;display:flex;align-items:center;justify-content:space-between;padding:0 17px;border-bottom:1px solid #45473f;gap:8px;font-size:10px;color:#bcbeb4;letter-spacing:1.2px;text-transform:uppercase}
+    .stage-top .left-tags{display:flex;gap:16px;align-items:center}.stage-top .left-tags span:nth-child(2){color:#858b80}
+    .screen{min-height:0;aspect-ratio:16/9;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 52% 45%,#3c413a,#181b18 62%,#131511)}
+    canvas{display:block;width:100%;height:100%;object-fit:contain;position:absolute;inset:0;visibility:hidden}.screen.loaded canvas{visibility:visible}.screen.loaded{background:#080908}
+    .empty-state{padding:30px 20px;text-align:center;max-width:365px;z-index:1}.screen.loaded .empty-state{display:none}
+    .empty-symbol{width:72px;height:72px;border:1px solid #7d765260;border-radius:50%;display:grid;place-items:center;margin:0 auto 21px;background:radial-gradient(circle,#b18d5740,#1e211e);color:#dab783}
+    .empty-symbol svg{width:40px;height:40px;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.35}
+    .empty-state h3{font:normal 25px Georgia,serif;margin-bottom:9px}.empty-state p{font-size:12px;color:#afb3a9;line-height:1.65;margin:0 auto 18px}.empty-cta{border:1px solid #a68856;background:#d4af75;color:#1c201b;padding:10px 17px;font-weight:750;border-radius:8px;font-size:12px}
+    .grain-overlay{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.22;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.58' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E")}.screen.loaded .grain-overlay{opacity:.08}
+    .screen-badge{position:absolute;z-index:3;bottom:13px;left:14px;font-size:10px;color:#faf7ee;background:#151613b8;border:1px solid #b5aa8740;padding:7px 11px;border-radius:5px;backdrop-filter:blur(8px);pointer-events:none;display:none}.screen.loaded .screen-badge{display:block}
+    .stage-foot{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:11px 15px;border-top:1px solid #3d4139;background:#22241f;color:#9a9e91;font-size:11px}
+    .stage-foot .footright{display:flex;gap:16px}.stage-foot strong{color:#d3d4ca;font-weight:550}
+    .actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:17px 0 22px}
+    .btn{border:1px solid #464c41;background:#252923;color:#e7e7df;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:41px;padding:0 16px;font-weight:650;font-size:12px;transition:background .15s,border-color .15s}
+    .btn:hover:not(:disabled){background:#35392f;border-color:#817e69}.btn svg{height:16px;width:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .btn-primary{background:#d2ac73;color:#1a1c17;border-color:#d9b97f}.btn-primary:hover:not(:disabled){background:#e3c38d;border-color:#e5c48b}
+    .btn-spacer{margin-left:auto}.btn.saved{border-color:#9fbe92;color:#d0e8c8}.btn.is-comparing{background:#373b2e;border-color:#d9b67d}
+    .tools{background:#1c201b;border:1px solid #343a32;border-radius:13px;padding:20px 22px 19px}.tools-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:19px}.tools-head h3{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;font-weight:750;margin:0}.tools-head span{color:#9da496;font-size:11px}
+    .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:34px;row-gap:19px}.control-title{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#c6cbbc;margin-bottom:12px}.control-title output{font-size:11px;color:#cca877;font-variant-numeric:tabular-nums}
+    input[type=range]{appearance:none;-webkit-appearance:none;display:block;width:100%;height:5px;border-radius:20px;background:linear-gradient(to right,#c9a36a 0 var(--fill,50%),#454a40 var(--fill,50%) 100%);outline:0;margin:0 0 5px;cursor:pointer}
+    input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;height:15px;width:15px;border-radius:100%;background:#e4c18c;border:2px solid #282a22;box-shadow:0 0 0 1px #d7af74}
+    input[type=range]::-moz-range-thumb{height:12px;width:12px;border-radius:100%;background:#e4c18c;border:2px solid #282a22}
+    .devicebar{display:grid;grid-template-columns:minmax(0,1fr) 155px;gap:14px;margin-top:20px;border-top:1px solid #373c35;padding-top:18px}.devicebar label{display:block;color:#989f93;text-transform:uppercase;letter-spacing:1.25px;font-size:10px;font-weight:750;margin-bottom:8px}
+    select{width:100%;height:38px;border:1px solid #474c43;background:#272b26;color:#e4e5da;border-radius:7px;padding:0 10px;font-size:12px}
+    .palettebox{border:1px solid #363c35;border-radius:11px;margin-top:17px;padding:15px 17px;display:flex;align-items:center;justify-content:space-between;gap:18px;background:#1d211c}.palettebox .name{font-size:12px;font-weight:650}.palettebox .desc{font-size:11px;line-height:1.5;color:#9da59b;margin-top:5px;max-width:520px}.swatches{display:flex;gap:4px;flex-wrap:nowrap;align-items:center}.swatches span{width:19px;height:24px;border-radius:3px;border:1px solid #e7e6d42e;flex:0 0 19px}
+    .notice{display:none;align-items:flex-start;gap:9px;font-size:12px;line-height:1.55;border:1px solid #956b48;background:#3a2c22;color:#f3d6b1;padding:12px 14px;border-radius:9px;margin:10px 0}.notice.show{display:flex}.notice strong{font-size:15px}
+    .bottomline{max-width:1700px;padding:14px clamp(18px,3vw,50px) 30px;margin:auto;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;font-size:11px;color:#7b8279}.bottomline em{font-style:normal;color:#a5a99b}
+    .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}
+    @media(max-width:1050px){.shell{grid-template-columns:260px minmax(0,1fr)}.controls{gap:20px}.swatches span{width:15px;flex-basis:15px}}
+    @media(max-width:850px){.shell{grid-template-columns:minmax(0,1fr);padding-top:22px}.sidebar{display:grid;grid-template-columns:minmax(0,1fr);gap:0}.intro{max-width:none;margin-bottom:8px}.presets{grid-template-columns:repeat(5,minmax(130px,1fr));overflow-x:auto;padding:2px 0 8px}.preset{min-height:100px;flex-direction:column;align-items:flex-start;padding:10px}.preset-art{width:100%;height:31px;flex-basis:31px}.preset-details{gap:3px}.preset-check{position:absolute;top:8px;right:12px}.tip{margin-top:12px}.stagehead{margin-top:4px}}
+    @media(max-width:560px){.screen:not(.loaded){min-height:300px;aspect-ratio:auto}.screen.loaded{min-height:0}.sitehead{padding:15px 18px}.topnote{display:none}.shell{padding:18px 13px 10px;gap:19px}h1{font-size:35px}.intro{font-size:12px}.presets{gap:7px}.preset{min-width:133px}.stagehead{padding:0 3px}.stagehead h2{font-size:21px}.stagehead p{line-height:1.5}.stage-top{padding:0 11px}.stage-top .left-tags span:nth-child(2){display:none}.stage-foot{padding:9px 11px}.stage-foot .footright{gap:10px}.actions{gap:7px}.btn{padding:0 12px;font-size:11px;min-height:40px}.btn-spacer{margin-left:0}.tools{padding:17px 13px}.controls{column-gap:18px;row-gap:21px}.control-title{font-size:11px}.devicebar{grid-template-columns:minmax(0,1fr) 110px;gap:10px}.palettebox{align-items:flex-start;flex-direction:column;gap:12px}.swatches span{flex-basis:19px;width:19px}.bottomline{padding:15px}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <header class="sitehead">
+    <div class="brand">
+      <div class="brandmark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19 16 7l2 2L7 21 4 20zM14 5l4-3 4 4-3 4M10 10l4 4M4 3c4 .5 6 3 6 6"/></svg></div>
+      <div><strong>Lienzo Vivo</strong><small>Estudio de arte digital</small></div>
+    </div>
+    <div class="topnote"><span class="green-dot"></span> Procesamiento privado, directamente en tu dispositivo</div>
+  </header>
+  <main class="shell">
+    <aside class="sidebar">
+      <div class="hero-kicker">Cámara · luz · pincel</div>
+      <h1>Tu mundo,<br><i>hecho pintura.</i></h1>
+      <p class="intro">Convierte cada escena en un lienzo vivo: pinceladas con relieve, texturas de óleo y paletas extraídas de las pinturas que nos inspiraron.</p>
+      <div class="sectionhead"><h2>01 / Escoge un lenguaje</h2><span>5 estilos</span></div>
+      <div class="presets" id="presetList" role="group" aria-label="Estilos de pintura"></div>
+      <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 3a7 7 0 0 1 3 13.3V20H9v-3.7A7 7 0 0 1 12 3Z"/><path d="M9 23h6M9 18h6"/></svg><span>Las formas de la escena se conservan; la luz, los colores y las superficies se reinterpretan mediante pinceladas orientadas según sus contornos.</span></div>
+    </aside>
+
+    <section class="workspace" aria-label="Estudio de cámara">
+      <div class="stagehead">
+        <div><h2>El lienzo en movimiento</h2><p id="stageSubheading">Enciende tu cámara o carga una fotografía para comenzar.</p></div>
+        <div id="liveState" class="livestate"><span class="status-dot"></span><span id="liveText">En espera</span></div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="stage-top"><div class="left-tags"><span>✦ Atelier / Live</span><span>Transformación pictórica en tiempo real</span></div><span id="stageStyle">BARROCO</span></div>
+        <div class="screen" id="screen">
+          <canvas id="paintCanvas" width="960" height="540" aria-label="Vídeo de cámara con efecto de pintura"></canvas>
+          <div class="grain-overlay"></div>
+          <div class="empty-state" id="emptyState">
+            <div class="empty-symbol" aria-hidden="true"><svg viewBox="0 0 42 42"><path d="M6 31c9-15 14-9 18-18s11-9 12-6c3 7-14 21-21 25-6 4-10 6-9-1Z"/><path d="m9 28 6 5M16 19l7 7M29 8l7 7M5 36l5-5"/></svg></div>
+            <h3>La cámara es tu pincel</h3>
+            <p>Explora cómo se transforma la realidad a través del color, las sombras y la materia de la pintura.</p>
+            <button type="button" class="empty-cta" id="emptyStart">Activar cámara</button>
+          </div>
+          <span class="screen-badge" id="screenBadge">ÓLEO · EN VIVO</span>
+        </div>
+        <div class="stage-foot"><span id="footStatus">● Sin fuente de imagen</span><div class="footright"><span id="resolutionText">— × —</span><strong id="fpsText">— FPS</strong></div></div>
+      </div>
+      <div class="notice" id="notice" role="alert"><strong>!</strong><span id="noticeText"></span></div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="cameraButton"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="12" rx="2"/><path d="m17 10 4-3v10l-4-3"/></svg><span id="cameraBtnText">Iniciar cámara</span></button>
+        <button type="button" class="btn" id="uploadButton"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m3 16 5-4 4 3 4-5 5 6"/></svg> Abrir imagen</button>
+        <input type="file" id="imageInput" class="sr-only" accept="image/*" aria-label="Abrir fotografía">
+        <button type="button" class="btn" id="compareButton" disabled title="Mantén pulsado para ver la imagen sin pintar"><svg viewBox="0 0 24 24"><path d="M12 3v18M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"/></svg> Ver original</button>
+        <button type="button" class="btn btn-spacer" id="captureButton" disabled><svg viewBox="0 0 24 24"><path d="M5 7h4l2-3h4l2 3h2a2 2 0 0 1 2 2v10H3V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3.5"/></svg> Guardar pintura</button>
+      </div>
+      <div class="tools">
+        <div class="tools-head"><h3>02 / Tu taller de pinceladas</h3><span>Ajustes en directo</span></div>
+        <div class="controls">
+          <div class="control"><div class="control-title"><label for="brush">Tamaño de pincel</label><output id="brushValue">55 %</output></div><input id="brush" type="range" min="0" max="100" value="55"></div>
+          <div class="control"><div class="control-title"><label for="strength">Intensidad del óleo</label><output id="strengthValue">90 %</output></div><input id="strength" type="range" min="0" max="100" value="90"></div>
+          <div class="control"><div class="control-title"><label for="palette">Influencia de la paleta</label><output id="paletteValue">60 %</output></div><input id="palette" type="range" min="0" max="100" value="60"></div>
+          <div class="control"><div class="control-title"><label for="texture">Textura y relieve</label><output id="textureValue">65 %</output></div><input id="texture" type="range" min="0" max="100" value="65"></div>
+        </div>
+        <div class="devicebar">
+          <div><label for="deviceSelect">Cámara conectada</label><select id="deviceSelect"><option value="">Cámara predeterminada</option></select></div>
+          <div><label for="qualitySelect">Resolución</label><select id="qualitySelect"><option value="640">Rápida</option><option value="960" selected>Equilibrada</option><option value="1440">Alta</option><option value="1920">Máxima</option></select></div>
+        </div>
+      </div>
+      <div class="palettebox"><div><div class="name" id="paletteName">Barroco · luz y sombra</div><div class="desc" id="paletteDescription">Ocres, tierras cálidas y negros profundos; contraste dramático inspirado en la pintura barroca.</div></div><div class="swatches" id="swatches" aria-label="Paleta de colores seleccionada"></div></div>
+    </section>
+  </main>
+  <footer class="bottomline"><span>© Lienzo Vivo · Arte generativo con GPU · Sin cuentas ni cargas a servidores</span><span>Recomendación: <em>Chrome, Edge, Firefox o Safari recientes</em> · Usa HTTPS o localhost para acceder a cámaras</span></footer>
+  <video id="sourceVideo" autoplay muted playsinline style="display:none" aria-hidden="true"></video>
+
+  <script>
+  'use strict';
+  (() => {
+    const $ = id => document.getElementById(id);
+    // Paletas tomadas de las cinco referencias aportadas: dominantes medidos más acentos reconocibles.
+    const STYLES = [
+      {name:'Barroco',short:'BARROCO',subtitle:'Claroscuro · óleo clásico',paletteName:'Barroco · luz y sombra',description:'Ocres, tierras cálidas y negros profundos; contraste dramático inspirado en la primera pintura.',
+       colors:['#0b0a08','#262119','#473724','#694c30','#855e3f','#b4896a','#dda66a','#f6cc9a','#e7e4e2']},
+      {name:'Noche expresionista',short:'EXPRESIONISMO',subtitle:'Luz vibrante · trazos libres',paletteName:'Noche expresionista · cielo vibrante',description:'Verdes oscuros, azules nocturnos, rosa suave y acentos amarillos, como en la pareja al atardecer.',
+       colors:['#0f1624','#222f35','#394b1e','#5b6c33','#8d929f','#c4a9a5','#c8a56b','#d86c50','#f6cf66']},
+      {name:'El sembrador',short:'SEMBRADOR',subtitle:'Azul y oro · Van Gogh',paletteName:'El sembrador · azul y oro',description:'Contraste de amarillos solares y azules fríos, con pinceladas dinámicas inspiradas en El sembrador.',
+       colors:['#263e4b','#2d587a','#53879c','#8ca2a6','#a77d59','#b0a589','#d4af43','#dfc75b','#f4e48a']},
+      {name:'Cipreses',short:'CIPRESES',subtitle:'Trazos ondulantes · Van Gogh',paletteName:'Cipreses · verdes y cielo',description:'Verdes vegetales, cian mineral y marfil; pinceladas giratorias inspiradas en los cipreses.',
+       colors:['#242f22','#38442d','#505a39','#77763d','#5b828a','#76a1a2','#92bab4','#c9c7bd','#e9d19a']},
+      {name:'Abstracción',short:'ABSTRACTO',subtitle:'Materia · acrílico contemporáneo',paletteName:'Abstracción · manchas y ritmo',description:'Grises pictóricos, malvas, rosa y amarillo lima, con trazos anchos y acentos de color.',
+       colors:['#383937','#4a4643','#736b5a','#79859e','#9a8d8b','#d2bbdb','#cb76ae','#dce36e','#92aaa0']}
+    ];
+    const state = {style:0,source:null,kind:null,stream:null,blobUrl:null,original:false,frameHandle:0,lastFrame:0,frames:0,lastFpsTime:0,quality:960,paused:false,rendering:false,renderer:null};
+    let canvas=$('paintCanvas');const video=$('sourceVideo');
+    const sliderIds=['brush','strength','palette','texture'];
+    const rangeValue=id=>Number($(id).value)/100;
+    const toRgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
+    const describeError=err=>{
+      if(err?.name==='NotAllowedError'||err?.name==='PermissionDeniedError') return 'El navegador denegó el acceso a la cámara. Habilita el permiso de cámara en la barra de direcciones y vuelve a intentarlo.';
+      if(err?.name==='NotFoundError'||err?.name==='DevicesNotFoundError') return 'No se encontró ninguna cámara. Conecta una cámara USB o utiliza «Abrir imagen».';
+      if(err?.name==='NotReadableError'||err?.name==='TrackStartError') return 'Otra aplicación parece estar utilizando la cámara. Ciérrala o selecciona otra cámara.';
+      if(err?.name==='OverconstrainedError') return 'La cámara elegida no admite la configuración solicitada. Selecciona la cámara predeterminada.';
+      return `No se pudo acceder a la cámara: ${err?.message||'error desconocido'}. Prueba HTTPS o http://localhost:8000.`;
+    };
+    function notice(message){$('noticeText').textContent=message;$('notice').classList.add('show')}
+    function clearNotice(){$('notice').classList.remove('show')}
+    function setStatus(kind,label){$('liveText').textContent=label;$('liveState').classList.toggle('live',kind==='live')}
+    function setReady(on){$('screen').classList.toggle('loaded',on);$('compareButton').disabled=!on;$('captureButton').disabled=!on}
+    function updateDimensions(){
+      if(!state.source)return;
+      const w=state.kind==='video'?video.videoWidth:state.source.naturalWidth;
+      const h=state.kind==='video'?video.videoHeight:state.source.naturalHeight;
+      if(!w||!h)return;
+      // Limita el número de píxeles y conserva la proporción original.
+      const scale=Math.min(1,state.quality/w,Math.sqrt((state.quality*state.quality*.9)/(w*h)));
+      const tw=Math.max(2,Math.round(w*scale/2)*2), th=Math.max(2,Math.round(h*scale/2)*2);
+      canvas.width=tw;canvas.height=th;
+      $('screen').style.aspectRatio=`${tw} / ${th}`;
+      $('resolutionText').textContent=`${tw} × ${th}`;
+      if(state.renderer)state.renderer.resize(tw,th);
+    }
+    function renderStylePicker(){
+      const target=$('presetList');target.replaceChildren();
+      STYLES.forEach((style,index)=>{
+        const b=document.createElement('button');b.type='button';b.className='preset'+(index===state.style?' active':'');b.setAttribute('aria-pressed',String(index===state.style));
+        const art=document.createElement('div');art.className='preset-art';art.style.setProperty('--swatches',`linear-gradient(125deg,${style.colors.slice(0,6).join(',')})`);
+        const txt=document.createElement('div');txt.className='preset-details';
+        const n=document.createElement('span');n.className='preset-name';n.textContent=style.name;
+        const sub=document.createElement('span');sub.className='preset-description';sub.textContent=style.subtitle;
+        txt.append(n,sub);
+        const check=document.createElement('span');check.className='preset-check';check.textContent='✓';check.setAttribute('aria-hidden','true');
+        b.append(art,txt,check);b.addEventListener('click',()=>setStyle(index));target.append(b);
+      });
+    }
+    function setStyle(index){
+      state.style=index;const style=STYLES[index];renderStylePicker();
+      $('stageStyle').textContent=style.short;$('paletteName').textContent=style.paletteName;$('paletteDescription').textContent=style.description;
+      const holder=$('swatches');holder.replaceChildren();style.colors.forEach(c=>{const sw=document.createElement('span');sw.style.backgroundColor=c;sw.title=c;holder.append(sw)});
+      if(state.source&&state.kind==='image')drawFrame();
+    }
+    // Vertex/fragment shaders: cada fragmento integra múltiples pinceladas elípticas
+    // orientadas por el gradiente local de la escena, con bordes rugosos, pigmento y luz.
+    const vertexSource=`#version 300 es
+      in vec2 aPosition;
+      void main(){gl_Position=vec4(aPosition,0.0,1.0);}
+    `;
+    const fragmentSource=`#version 300 es
+      precision highp float;
+      uniform sampler2D uFrame;
+      uniform vec2 uResolution;
+      uniform vec3 uPalette[9];
+      uniform int uStyle;
+      uniform float uBrush;
+      uniform float uStrength;
+      uniform float uPaletteMix;
+      uniform float uTexture;
+      uniform float uOriginal;
+      out vec4 fragColor;
+
+      float luminance(vec3 c){return dot(c,vec3(.299,.587,.114));}
+      float hash21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+      vec3 texel(vec2 p){return texture(uFrame,clamp(p/uResolution,vec2(.0001),vec2(.9999))).rgb;}
+
+      // Cada capa contiene celdas de pinceladas con longitud, ancho y rugosidad variables.
+      vec4 brushLayer(vec2 p,float cell,float salt){
+        vec2 tile=floor(p/cell);
+        vec3 ink=vec3(0.0);
+        float coverage=0.0;
+        for(int j=-1;j<=1;j++){
+          for(int i=-1;i<=1;i++){
+            vec2 id=tile+vec2(float(i),float(j));
+            float rnd=hash21(id+vec2(salt,salt*1.23));
+            float r2=hash21(id*1.73+vec2(salt*2.01,7.19));
+            vec2 center=(id+vec2(.5)+(vec2(rnd,r2)-.5)*.69)*cell;
+            vec3 source=texel(center);
+            float l=luminance(source);
+            vec2 px=vec2(4.0,0.0);
+            float dx=luminance(texel(center+px))-l;
+            float dy=luminance(texel(center+px.yx))-l;
+            float a=atan(dy,dx)+1.5707963;
+            float randomAngle=rnd*6.2831853;
+            float edge=length(vec2(dx,dy));
+            a=mix(a,randomAngle,clamp((.082-edge)*7.0,.08,.62));
+            if(uStyle==1){a+=.21*sin(center.y*.022+center.x*.013);}
+            if(uStyle==2){a+=.27*sin(center.x*.016+center.y*.011);}
+            if(uStyle==3){
+              vec2 whirl=center-uResolution*vec2(.43,.63);
+              float swirl=atan(whirl.y,whirl.x)+1.5707963;
+              a=mix(a,swirl,.36);
+            }
+            if(uStyle==4){a=mix(a,randomAngle,.38);}
+            vec2 v=vec2(cos(a),sin(a));
+            vec2 local=p-center;
+            float u=dot(local,v)/(cell*(uStyle==4?.84:1.17));
+            float t=dot(local,vec2(-v.y,v.x))/(cell*(uStyle==4?.39:.24));
+            float bent=t+(.08+.08*rnd)*sin(u*3.7+rnd*6.2831853);
+            float shape=length(vec2(u,bent));
+            float jag=(sin(u*23.0+rnd*9.0)+sin(t*17.0+r2*11.0))*.022*uTexture;
+            float mask=1.0-smoothstep(.78,1.10,shape+jag);
+            if(mask>.002){
+              float bristle=sin(t*22.0+u*3.0+rnd*21.0);
+              float flecks=hash21(floor(p*.9)+id*7.0);
+              float sheen=1.0+uTexture*(.095*bristle+.07*(flecks-.5)+.048*(-t));
+              vec3 paint=source*sheen;
+              float op=mask*(.76+.24*r2);
+              ink+=paint*op;
+              coverage+=op;
+            }
+          }
+        }
+        return vec4(ink/max(coverage,.0001),clamp(coverage*.95,0.0,1.0));
+      }
+      vec3 pigment(vec3 c){
+        float best=100.0;
+        vec3 nearest=c;
+        for(int i=0;i<9;i++){
+          vec3 p=uPalette[i];
+          vec3 delta=(p-c)*vec3(1.0,1.05,.94);
+          float d=dot(delta,delta)+.37*pow(luminance(p)-luminance(c),2.0);
+          if(d<best){best=d;nearest=p;}
+        }
+        // Conserva las variaciones tonales del objeto aunque se cambie su pigmento.
+        float oldLum=luminance(c);
+        float pigmentLum=max(.10,luminance(nearest));
+        vec3 lifted=nearest*clamp(.79+.21*oldLum/pigmentLum,.73,1.23);
+        return mix(c,lifted,uPaletteMix);
+      }
+      vec3 grade(vec3 col,vec2 uv){
+        if(uStyle==0){
+          col=pow(col,vec3(1.10));
+          col*=vec3(1.075,.99,.86);
+          float vignette=1.0-smoothstep(.19,.83,length((uv-.5)*vec2(1.02,.86)));
+          col*=mix(.59,1.0,vignette);
+        } else if(uStyle==1){
+          col=pow(col,vec3(.94));
+          col=mix(vec3(luminance(col)),col,1.20);
+          col*=vec3(.98,1.04,1.12);
+        } else if(uStyle==2){
+          col=mix(vec3(luminance(col)),col,1.23);
+          col*=vec3(1.09,1.03,.94);
+        } else if(uStyle==3){
+          col=mix(vec3(luminance(col)),col,1.17);
+          col*=vec3(.94,1.07,1.035);
+        } else {
+          col=mix(vec3(luminance(col)),col,.80);
+          col=pow(col,vec3(.92));
+        }
+        return clamp(col,0.0,1.0);
+      }
+      void main(){
+        vec2 p=gl_FragCoord.xy;
+        vec2 uv=p/uResolution;
+        vec3 original=texture(uFrame,uv).rgb;
+        if(uOriginal>.5||uStrength<.002){fragColor=vec4(original,1.0);return;}
+        float wide=mix(15.0,35.0,uBrush);
+        float small=mix(6.4,18.5,uBrush);
+        vec4 broad=brushLayer(p,wide,1.73);
+        vec4 detail=brushLayer(p,small,21.57);
+        vec3 col=original;
+        col=mix(col,broad.rgb,broad.a*.90);
+        col=mix(col,detail.rgb,detail.a*.79);
+        col=grade(col,uv);
+        col=pigment(col);
+        // Relieve del empaste y trama de soporte de lienzo.
+        float weave=sin(p.x*.72)*sin(p.y*.69);
+        float grain=hash21(floor(p*1.55));
+        col*=1.0+uTexture*(.024*weave+.040*(grain-.5));
+        float edge=abs(luminance(texel(p+vec2(2.5,0.0)))-luminance(texel(p-vec2(2.5,0.0))))
+          +abs(luminance(texel(p+vec2(0.0,2.5)))-luminance(texel(p-vec2(0.0,2.5))));
+        col*=1.0-clamp(edge*.20*uTexture,0.0,.15);
+        fragColor=vec4(clamp(mix(original,col,uStrength),0.0,1.0),1.0);
+      }
+    `;
+
+    class PainterGL{
+      constructor(canvas){
+        const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+        if(!gl)throw new Error('Este navegador no tiene WebGL 2. Activa la aceleración por hardware o utiliza Chrome/Edge actualizado.');
+        this.gl=gl;this.canvas=canvas;
+        const compile=(kind,source)=>{const s=gl.createShader(kind);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error('Error al compilar el filtro: '+gl.getShaderInfoLog(s));return s;};
+        const program=gl.createProgram();
+        gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexSource));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(program);
+        if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error('Error al enlazar el filtro: '+gl.getProgramInfoLog(program));
+        gl.useProgram(program);this.program=program;
+        const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+        const attr=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
+        const tex=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+        this.tex=tex;this.u={};
+        for(const k of ['uFrame','uResolution','uPalette','uStyle','uBrush','uStrength','uPaletteMix','uTexture','uOriginal'])this.u[k]=gl.getUniformLocation(program,k==='uPalette'?'uPalette[0]':k);
+        gl.uniform1i(this.u.uFrame,0);
+        this.paletteCache=new Map();
+      }
+      resize(w,h){this.gl.viewport(0,0,w,h)}
+      draw(source){
+        const gl=this.gl;
+        gl.useProgram(this.program);gl.viewport(0,0,this.canvas.width,this.canvas.height);
+        gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.tex);
+        try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,source);}catch(err){throw new Error('No se pudo leer la imagen de la cámara: '+err.message);}
+        gl.uniform2f(this.u.uResolution,this.canvas.width,this.canvas.height);
+        gl.uniform1i(this.u.uStyle,state.style);
+        gl.uniform1f(this.u.uBrush,rangeValue('brush'));
+        gl.uniform1f(this.u.uStrength,rangeValue('strength'));
+        gl.uniform1f(this.u.uPaletteMix,rangeValue('palette'));
+        gl.uniform1f(this.u.uTexture,rangeValue('texture'));
+        gl.uniform1f(this.u.uOriginal,state.original?1:0);
+        if(!this.paletteCache.has(state.style))this.paletteCache.set(state.style,new Float32Array(STYLES[state.style].colors.flatMap(toRgb)));
+        gl.uniform3fv(this.u.uPalette,this.paletteCache.get(state.style));
+        gl.drawArrays(gl.TRIANGLES,0,3);
+      }
+    }
+    // Alternativa Canvas 2D si el dispositivo no ofrece WebGL2.
+    class PainterFallback{
+      constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d',{willReadFrequently:true});this.scratch=document.createElement('canvas');this.sctx=this.scratch.getContext('2d',{willReadFrequently:true});}
+      resize(){}
+      draw(source){
+        const ctx=this.ctx,w=this.canvas.width,h=this.canvas.height;
+        this.scratch.width=Math.max(1,Math.ceil(w/3));this.scratch.height=Math.max(1,Math.ceil(h/3));
+        this.sctx.drawImage(source,0,0,this.scratch.width,this.scratch.height);
+        const data=this.sctx.getImageData(0,0,this.scratch.width,this.scratch.height).data;
+        ctx.drawImage(source,0,0,w,h);
+        if(state.original)return;
+        const brush=Math.round(9+rangeValue('brush')*20),opacity=rangeValue('strength');
+        const sw=this.scratch.width,sh=this.scratch.height;
+        const pigments=STYLES[state.style].colors.map(toRgb),blend=rangeValue('palette');
+        const lum=(x,y)=>{const i=(Math.max(0,Math.min(sh-1,y))*sw+Math.max(0,Math.min(sw-1,x)))*4;return (data[i]*.3+data[i+1]*.59+data[i+2]*.11);};
+        ctx.save();ctx.globalAlpha=opacity*.86;ctx.lineCap='round';
+        for(let y=0;y<h;y+=brush*.64){for(let x=0;x<w;x+=brush*.69){
+          const gx=Math.min(sw-2,Math.max(1,Math.floor(x/w*sw))),gy=Math.min(sh-2,Math.max(1,Math.floor(y/h*sh)));
+          const i=(gy*sw+gx)*4,c=[data[i],data[i+1],data[i+2]];
+          let nearest=c;let dist=1e8;
+          for(const pc of pigments){const d=(pc[0]*255-c[0])**2+(pc[1]*255-c[1])**2+(pc[2]*255-c[2])**2;if(d<dist){dist=d;nearest=pc.map(v=>v*255)}}
+          const rgb=c.map((v,k)=>Math.max(0,Math.min(255,Math.round(v*(1-blend)+nearest[k]*blend))));
+          const angle=Math.atan2(lum(gx,gy+1)-lum(gx,gy-1),lum(gx+1,gy)-lum(gx-1,gy))+Math.PI/2;
+          ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.strokeStyle=`rgb(${rgb.join(',')})`;ctx.lineWidth=Math.max(2,brush*(state.style===4?.40:.27));
+          ctx.beginPath();ctx.moveTo(-brush*.62,Math.sin(x*.1)*1.1);ctx.quadraticCurveTo(0,brush*.1,brush*.61,0);ctx.stroke();ctx.restore();
+        }}ctx.restore();
+      }
+    }
+    function initRenderer(){if(state.renderer)return;try{state.renderer=new PainterGL(canvas)}catch(err){
+      console.warn(err);try{
+        // Si WebGL se inició pero no compiló, se necesita un canvas nuevo para Canvas2D.
+        if(!canvas.getContext('2d')){const replacement=canvas.cloneNode(false);canvas.replaceWith(replacement);canvas=replacement;}
+        state.renderer=new PainterFallback(canvas);
+        notice('Tu dispositivo está usando un filtro de compatibilidad; para pinceladas más fluidas, activa WebGL 2 o la aceleración gráfica.');}
+      catch(err2){throw err2;}
+    }}
+    function drawFrame(){
+      if(!state.source||state.rendering)return;
+      if(state.kind==='video'&&(video.readyState<2||!video.videoWidth))return;
+      state.rendering=true;
+      try{initRenderer();state.renderer.draw(state.source);}catch(err){console.error(err);notice(err.message||String(err));stopCamera();}
+      finally{state.rendering=false;}
+    }
+    function loop(ts){
+      state.frameHandle=requestAnimationFrame(loop);
+      if(state.kind!=='video'||state.paused)return;
+      if(ts-state.lastFrame<33)return;
+      state.lastFrame=ts;
+      drawFrame();state.frames++;
+      if(!state.lastFpsTime)state.lastFpsTime=ts;
+      if(ts-state.lastFpsTime>1000){$('fpsText').textContent=`${Math.round(state.frames*1000/(ts-state.lastFpsTime))} FPS`;state.frames=0;state.lastFpsTime=ts;}
+    }
+    function startLoop(){if(!state.frameHandle)state.frameHandle=requestAnimationFrame(loop)}
+    function stopCamera(){
+      if(state.stream){state.stream.getTracks().forEach(t=>t.stop());state.stream=null;}
+      video.pause();video.srcObject=null;
+      if(state.kind==='video'){state.source=null;state.kind=null;setReady(false);setStatus('off','En espera');$('footStatus').textContent='● Cámara apagada';$('stageSubheading').textContent='Enciende tu cámara o carga una fotografía para comenzar.';$('cameraBtnText').textContent='Iniciar cámara';$('fpsText').textContent='— FPS';$('resolutionText').textContent='— × —';$('screen').style.aspectRatio='';}
+    }
+    function clearPhoto(){if(state.blobUrl){URL.revokeObjectURL(state.blobUrl);state.blobUrl=null;}}
+    async function updateDevices(){
+      if(!navigator.mediaDevices?.enumerateDevices)return;
+      try{
+        const devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+        const sel=$('deviceSelect'),selection=sel.value;sel.replaceChildren();
+        const def=document.createElement('option');def.value='';def.textContent='Cámara predeterminada';sel.append(def);
+        devices.forEach((d,i)=>{if(!d.deviceId)return;const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||`Cámara ${i+1}`;sel.append(o)});
+        if([...sel.options].some(o=>o.value===selection))sel.value=selection;
+      }catch(e){console.warn('Enumeración de cámaras no disponible',e)}
+    }
+    async function startCamera(){
+      clearNotice();
+      if(!navigator.mediaDevices?.getUserMedia){notice('La cámara no está disponible en este contexto. Abre esta aplicación desde HTTPS o http://localhost:8000 y concede permiso para usar la cámara.');return;}
+      $('cameraButton').disabled=true;$('emptyStart').disabled=true;setStatus('off','Conectando…');
+      try{
+        stopCamera();clearPhoto();
+        const chosen=$('deviceSelect').value;
+        const videoOpts={width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30}};
+        if(chosen)videoOpts.deviceId={exact:chosen};
+        const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:videoOpts});
+        state.stream=stream;video.srcObject=stream;await video.play();
+        if(!video.videoWidth){await new Promise((res,rej)=>{video.addEventListener('loadedmetadata',res,{once:true});setTimeout(()=>video.videoWidth?res():rej(new Error('La cámara no entregó video')),4500)})}
+        state.kind='video';state.source=video;state.paused=false;
+        updateDimensions();setReady(true);setStatus('live','Cámara en vivo');
+        $('footStatus').textContent='● Pintura generada en tiempo real';$('stageSubheading').textContent='Tu escena se convierte en pinceladas mientras te mueves.';
+        $('cameraBtnText').textContent='Detener cámara';$('screenBadge').textContent='ÓLEO · EN VIVO';
+        state.frames=0;state.lastFpsTime=0;state.lastFrame=0;drawFrame();startLoop();
+        await updateDevices();
+        stream.getVideoTracks().forEach(track=>track.addEventListener('ended',()=>{if(state.stream===stream)stopCamera()}));
+      }catch(err){console.error(err);stopCamera();setStatus('off','Error de cámara');notice(describeError(err));}
+      finally{$('cameraButton').disabled=false;$('emptyStart').disabled=false;}
+    }
+    function takePhotoFile(file){
+      if(!file)return;clearNotice();if(!file.type.startsWith('image/')){notice('Selecciona una imagen JPEG, PNG, WebP o similar.');return;}
+      stopCamera();clearPhoto();
+      const url=URL.createObjectURL(file);state.blobUrl=url;
+      const image=new Image();image.onload=()=>{
+        if(state.blobUrl!==url)return;
+        state.source=image;state.kind='image';updateDimensions();setReady(true);setStatus('live','Imagen cargada');
+        $('footStatus').textContent='● Fotografía transformada';$('stageSubheading').textContent='Prueba los estilos y ajusta la textura sobre tu fotografía.';
+        $('screenBadge').textContent='ÓLEO · FOTO';$('fpsText').textContent='IMAGEN';drawFrame();
+      };
+      image.onerror=()=>{notice('La imagen no se pudo abrir. Prueba otro archivo PNG o JPEG.');if(state.blobUrl===url){clearPhoto()}};
+      image.src=url;
+    }
+    function saveImage(){
+      if(!state.source)return;
+      drawFrame();
+      try{
+        canvas.toBlob(blob=>{
+          if(!blob){notice('No se pudo exportar el lienzo.');return;}
+          const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;
+          a.download=`Lienzo-Vivo-${STYLES[state.style].name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-')}-${new Date().toISOString().slice(0,10)}.png`;
+          document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+          $('captureButton').classList.add('saved');setTimeout(()=>$('captureButton').classList.remove('saved'),1500);
+        },'image/png');
+      }catch(err){notice('No se pudo guardar la imagen: '+err.message)}
+    }
+    function toggleOriginal(on){state.original=!!on;$('compareButton').classList.toggle('is-comparing',state.original);if(state.source&&state.kind==='image')drawFrame();}
+    function bind(){
+      $('emptyStart').addEventListener('click',startCamera);
+      $('cameraButton').addEventListener('click',()=>{if(state.kind==='video'){stopCamera()}else{startCamera()}});
+      $('uploadButton').addEventListener('click',()=>$('imageInput').click());
+      $('imageInput').addEventListener('change',e=>{takePhotoFile(e.target.files?.[0]);e.target.value='';});
+      $('captureButton').addEventListener('click',saveImage);
+      const compare=$('compareButton');
+      compare.addEventListener('pointerdown',e=>{if(compare.disabled)return;compare.setPointerCapture?.(e.pointerId);toggleOriginal(true)});
+      compare.addEventListener('pointerup',()=>toggleOriginal(false));
+      compare.addEventListener('pointercancel',()=>toggleOriginal(false));
+      compare.addEventListener('lostpointercapture',()=>toggleOriginal(false));
+      compare.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggleOriginal(true)}});
+      compare.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggleOriginal(false)}});
+      window.addEventListener('blur',()=>toggleOriginal(false));
+      $('deviceSelect').addEventListener('change',()=>{if(state.kind==='video')startCamera()});
+      $('qualitySelect').addEventListener('change',e=>{state.quality=Number(e.target.value);if(state.source){updateDimensions();if(state.kind==='image')drawFrame()}});
+      for(const id of sliderIds){
+        const control=$(id);const update=()=>{const n=Number(control.value);$(id+'Value').textContent=`${n} %`;control.style.setProperty('--fill',`${n}%`);if(state.kind==='image')drawFrame()};
+        control.addEventListener('input',update);update();
+      }
+      if(navigator.mediaDevices?.addEventListener)navigator.mediaDevices.addEventListener('devicechange',updateDevices);
+      window.addEventListener('pagehide',()=>{if(state.stream)state.stream.getTracks().forEach(t=>t.stop());clearPhoto()});
+      document.addEventListener('visibilitychange',()=>{state.paused=document.hidden;if(!document.hidden&&state.kind==='image')drawFrame()});
+      // Arrastrar fotografías al lienzo.
+      const screen=$('screen');screen.addEventListener('dragover',e=>{e.preventDefault()});screen.addEventListener('drop',e=>{e.preventDefault();takePhotoFile(e.dataTransfer?.files?.[0])});
+    }
+    renderStylePicker();setStyle(0);bind();updateDevices();
+    // Indicador útil para pruebas automáticas y diagnóstico local (no utiliza datos de cámara).
+    window.LienzoVivo={get estado(){return {estilo:STYLES[state.style].name,fuente:state.kind,resolucion:[canvas.width,canvas.height],motor:state.renderer?.constructor.name||'sin inicializar'}},styles:STYLES.map(s=>s.name)};
+  })();
+  </script>
+</body>
+</html>

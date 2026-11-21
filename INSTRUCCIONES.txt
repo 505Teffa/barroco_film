@@ -1,0 +1,51 @@
+LIENZO VIVO — Aplicación de pintura en tiempo real
+==================================================
+
+1. INICIO RÁPIDO
+   Abre el archivo index.html en Chrome, Edge o Firefox reciente.
+   Pulsa «Iniciar cámara» y acepta el permiso para acceder a ella.
+   La aplicación también funciona con fotografías: «Abrir imagen».
+
+2. SI EL NAVEGADOR BLOQUEA LA CÁMARA AL ABRIR UN ARCHIVO LOCAL
+   La forma más fiable de ejecutar una cámara es en HTTPS o localhost.
+   En Windows, instala Python si no está instalado. Abre una terminal
+   dentro de esta carpeta y ejecuta:
+
+       py -m http.server 8000
+
+   Después abre:  http://localhost:8000
+
+   Alternativa (si "py" no existe): python -m http.server 8000
+   No hace falta instalar paquetes. También puedes subir index.html
+   a Cloudflare Pages (HTTPS automático), GitHub Pages u otro hosting HTTPS.
+
+3. CÓMO USAR LA APLICACIÓN
+   • Selecciona un estilo inspirado en una de las cinco pinturas.
+   • Si conectas una webcam USB, elígela en «Cámara conectada».
+   • Ajusta el tamaño de pincel, la intensidad del óleo, la influencia
+     de la paleta y el relieve en tiempo real.
+   • Mantén pulsado «Ver original» para comparar con la cámara normal.
+   • «Guardar pintura» exporta un PNG al dispositivo.
+   • «Resolución»: Rápida prioriza FPS; Alta/Máxima calidad de captura.
+   • Puedes arrastrar una imagen directamente sobre el área del lienzo.
+
+4. PRIVACIDAD Y RENDIMIENTO
+   El vídeo de cámara nunca se sube a servidores: el procesamiento
+   ocurre en tu equipo, usando WebGL 2 y la GPU. No hay cuentas,
+   analítica, dependencias externas ni acceso al micrófono.
+   Si el navegador no admite WebGL 2, se intenta un renderizador 2D.
+   Si la imagen tarda en pintarse, cambia resolución a «Rápida».
+
+5. QUÉ HACE EL FILTRO
+   El filtro interpreta los colores, luces y bordes de cada fotograma;
+   coloca pinceladas elongadas siguiendo los contornos y modifica el
+   color usando una paleta asociada a la referencia visual. Esto no es
+   un modelo de IA que reconoce objetos por sus nombres: se trata de
+   transformación pictórica de imagen en tiempo real.
+
+6. ARCHIVOS
+   index.html: aplicación completa (HTML + CSS + JavaScript).
+   INSTRUCCIONES.txt: este archivo.
+
+Sin instalación. Compatible con computadoras y móviles modernos que
+permitan usar cámaras desde un navegador seguro.
